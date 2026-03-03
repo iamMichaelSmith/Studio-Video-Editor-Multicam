@@ -66,3 +66,7 @@ The application will be available at http://localhost:5173
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details. 
+
+## Team Operations
+- Use `docs/DEPLOY_CHECKLIST.md` before release.
+- Use `docs/HANDOFF_CHECKLIST.md` for onboarding.
