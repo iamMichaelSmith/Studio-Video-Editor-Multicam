@@ -70,3 +70,11 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## Team Operations
 - Use `docs/DEPLOY_CHECKLIST.md` before release.
 - Use `docs/HANDOFF_CHECKLIST.md` for onboarding.
+
+## Employment Readiness
+This repository includes baseline standards to support hiring and delegation:
+- Clear onboarding in README/docs
+- CI checks for build/test/lint where applicable
+- Handoff/deploy checklist for repeatable operations
+- Secret-safe configuration via `.env.example` or platform secrets
+
