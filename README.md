@@ -17,7 +17,7 @@ A modern web-based video editing tool built with React and TypeScript. This appl
 
 ### Prerequisites
 
-- Node.js (v14 or higher)
+- Node.js (recommended: v20+; validated on v24)
 - npm or yarn
 
 ### Installation
@@ -33,7 +33,13 @@ cd studio-video-editor
 npm install
 ```
 
-3. Start the development server:
+3. Run test + build checks (recommended before starting dev):
+```bash
+npm test
+npm run build
+```
+
+4. Start the development server:
 ```bash
 npm run dev
 ```
@@ -51,6 +57,17 @@ The application will be available at http://localhost:5173
    - Enable/disable audio features
 3. Click "Process Videos" to start editing
 4. Download the processed video when complete
+
+## UI Screenshots (for GitHub)
+
+### Default upload view
+![Default upload view](docs/screenshots/ui-upload-default.jpg)
+
+### Expanded settings panel
+![Expanded settings panel](docs/screenshots/ui-settings-panel.jpg)
+
+### Settings variants example
+![Settings variants](docs/screenshots/ui-settings-variants.jpg)
 
 ## Technology Stack
 
@@ -77,4 +94,11 @@ This repository includes baseline standards to support hiring and delegation:
 - CI checks for build/test/lint where applicable
 - Handoff/deploy checklist for repeatable operations
 - Secret-safe configuration via `.env.example` or platform secrets
+
+## Validation Notes (2026-03-03)
+- `npm install` ✅
+- `npm test` ✅ (smoke)
+- `npm run build` ✅
+- Build warning observed: `caniuse-lite` outdated (optional maintenance command):
+  - `npx update-browserslist-db@latest`
 
