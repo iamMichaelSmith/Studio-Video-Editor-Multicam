@@ -2,9 +2,9 @@ import React, { useCallback, useState, useRef, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Video, Clapperboard, Upload, Settings, X, Smartphone, Download, Check, Music, Volume2, Play, Activity, Scissors, Zap, Film, Clock, Camera } from 'lucide-react';
 import { SimpleVideoProcessor, ProcessingOptions } from './SimpleVideoProcessor';
+import { PRESET_OPTIONS, MAX_FILES, detectStage, stageLabel, validateFiles, ProcessingStage } from './workflowUtils';
 import './App.css';
 
-// Define types for processor options
 interface VideoFile extends File {
   preview?: string;
 }
@@ -16,6 +16,12 @@ function App() {
   const [progress, setProgress] = useState(0);
   const [showSettings, setShowSettings] = useState(false);
   const [downloadUrl, setDownloadUrl] = useState('');
+  const [stage, setStage] = useState<ProcessingStage>('idle');
+  const [statusMessage, setStatusMessage] = useState('');
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  const [cancelRequested, setCancelRequested] = useState(false);
+  const cancelRef = useRef(false);
+  const [activePreset, setActivePreset] = useState<string | null>(null);
   const [options, setOptions] = useState<ProcessingOptions>({
     minSegmentDuration: 1.5,
     maxSegmentDuration: 4,
@@ -43,17 +49,23 @@ function App() {
   }, []);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
-    setFiles(acceptedFiles.map(file => Object.assign(file, {
+    const nextFiles = acceptedFiles.map(file => Object.assign(file, {
       preview: URL.createObjectURL(file)
-    })));
+    }));
+    const errors = validateFiles(nextFiles);
+    setValidationErrors(errors);
+    setStatusMessage(errors.length ? 'Please fix file issues before processing.' : '');
+    setStage(errors.length ? 'error' : 'idle');
+    setFiles(nextFiles);
   }, []);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
-      'video/*': ['.mp4', '.mov', '.avi']
+      'video/*': ['.mp4', '.mov', '.avi', '.webm']
     },
-    multiple: true
+    multiple: true,
+    maxFiles: MAX_FILES
   });
 
   const handleClear = () => {
@@ -67,39 +79,66 @@ function App() {
     setFiles([]);
     setDownloadUrl('');
     setProgress(0);
+    setValidationErrors([]);
+    setStatusMessage('');
+    setStage('idle');
+    setCancelRequested(false);
+    cancelRef.current = false;
   };
 
   // Process videos with progress tracking
   const handleProcess = async () => {
-    if (!processor || files.length === 0) return;
+    if (!processor) return;
+
+    const errors = validateFiles(files);
+    setValidationErrors(errors);
+    if (errors.length > 0) {
+      setStage('error');
+      setStatusMessage('Please fix validation errors before processing.');
+      return;
+    }
     
     try {
       setProcessing(true);
+      setCancelRequested(false);
+      cancelRef.current = false;
       setProgress(0);
+      setStage('validating');
+      setStatusMessage('Starting processing...');
       setDownloadUrl('');
 
-      // Function to track progress
-      const onProgress = (progress: number) => {
-        console.log(`Processing progress: ${progress}%`);
-        setProgress(Math.round(progress));
+      const onProgress = (nextProgress: number) => {
+        if (cancelRef.current) {
+          throw new Error('Processing cancelled by user.');
+        }
+        const normalized = Math.round(nextProgress);
+        console.log(`Processing progress: ${normalized}%`);
+        setProgress(normalized);
+        const detected = detectStage(normalized);
+        setStage(detected);
+        setStatusMessage(stageLabel(detected));
       };
 
-      // Run video processing
       const result = await processor.processVideos(files, options, onProgress);
       
-      console.log('Processing complete!', result);
-      
-      // Create download URL
-      const downloadUrl = URL.createObjectURL(result);
-      setDownloadUrl(downloadUrl);
+      const nextDownloadUrl = URL.createObjectURL(result);
+      setDownloadUrl(nextDownloadUrl);
+      setStage('done');
+      setStatusMessage('Video rendered successfully.');
     } catch (error) {
       console.error('Error processing videos:', error);
-      const errorMessage = error instanceof Error
-        ? `Error: ${error.message}`
-        : 'Unknown error processing videos';
-      alert(errorMessage);
+      const message = error instanceof Error ? error.message : 'Unknown error processing videos';
+      if (message.toLowerCase().includes('cancel')) {
+        setStage('cancelled');
+        setStatusMessage('Processing cancelled. You can adjust settings and retry.');
+      } else {
+        setStage('error');
+        setStatusMessage(message);
+      }
     } finally {
       setProcessing(false);
+      setCancelRequested(false);
+      cancelRef.current = false;
     }
   };
 
@@ -167,6 +206,21 @@ function App() {
     }));
   };
 
+  const applyPreset = (preset: keyof typeof PRESET_OPTIONS) => {
+    setOptions(prev => ({ ...prev, ...PRESET_OPTIONS[preset] }));
+    setActivePreset(preset);
+    setStatusMessage(`Applied ${preset} preset.`);
+    setStage('idle');
+  };
+
+  const handleCancel = () => {
+    if (!processing) return;
+    setCancelRequested(true);
+    cancelRef.current = true;
+    setStatusMessage('Cancellation requested...');
+    setStage('cancelled');
+  };
+
   return (
     <div className="app-container">
       <header className="app-header">
@@ -207,6 +261,17 @@ function App() {
             </button>
           )}
         </div>
+
+        {(validationErrors.length > 0 || statusMessage) && (
+          <div className={`status-banner ${stage === 'error' ? 'error' : stage === 'done' ? 'success' : ''}`}>
+            {statusMessage && <p>{statusMessage}</p>}
+            {validationErrors.length > 0 && (
+              <ul>
+                {validationErrors.map((err, idx) => <li key={idx}>{err}</li>)}
+              </ul>
+            )}
+          </div>
+        )}
       
         {/* File List */}
         {files.length > 0 && (
@@ -248,6 +313,15 @@ function App() {
           </div>
           
           <div className="settings-content">
+            <div className="setting-group">
+              <label className="setting-label">Quick Presets</label>
+              <div className="button-group preset-group">
+                <button className={activePreset === 'reels' ? 'selected' : ''} onClick={() => applyPreset('reels')} disabled={processing}>Reels</button>
+                <button className={activePreset === 'shorts' ? 'selected' : ''} onClick={() => applyPreset('shorts')} disabled={processing}>Shorts</button>
+                <button className={activePreset === 'tiktok' ? 'selected' : ''} onClick={() => applyPreset('tiktok')} disabled={processing}>TikTok</button>
+              </div>
+            </div>
+
             <div className="setting-group">
               <label className="setting-label">Output Format</label>
               <div className="button-group">
@@ -566,7 +640,7 @@ function App() {
           <button 
             className="process-button"
             onClick={handleProcess}
-            disabled={processing || files.length === 0}
+            disabled={processing || files.length === 0 || validationErrors.length > 0}
           >
             {processing ? (
               <>
@@ -579,11 +653,23 @@ function App() {
             )}
           </button>
           
+          {processing && (
+            <button className="cancel-button" onClick={handleCancel}>
+              Cancel Processing
+            </button>
+          )}
+
           {/* Progress indicator */}
           {processing && (
-            <div className="progress-container">
-              <div className="progress-bar" style={{ width: `${progress}%` }}></div>
-              <span className="progress-text">{progress}%</span>
+            <div className="progress-wrap">
+              <div className="progress-meta">
+                <span>{stageLabel(stage)}</span>
+                <span>{progress}%</span>
+              </div>
+              <div className="progress-container">
+                <div className="progress-bar" style={{ width: `${progress}%` }}></div>
+                <span className="progress-text">{progress}%</span>
+              </div>
             </div>
           )}
         </div>

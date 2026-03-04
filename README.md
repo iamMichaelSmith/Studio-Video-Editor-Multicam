@@ -12,6 +12,10 @@ A modern web-based video editing tool built with React and TypeScript. This appl
 - ⚡ Adjustable processing speed and quality settings
 - 🎵 Advanced audio controls with blending options
 - ⏱️ Flexible output duration control
+- ✅ File validation (format/count/size)
+- 🚦 Processing stage labels + progress telemetry
+- 🛑 Cancel-processing control (safe cancel request)
+- 🎛️ One-click presets (Reels / Shorts / TikTok)
 
 ## Getting Started
 
@@ -36,10 +40,16 @@ npm install
 3. Run test + build checks (recommended before starting dev):
 ```bash
 npm test
+npm run test:unit
 npm run build
 ```
 
-4. Start the development server:
+4. (Optional) Run e2e smoke in Playwright:
+```bash
+npm run test:e2e
+```
+
+5. Start the development server:
 ```bash
 npm run dev
 ```
