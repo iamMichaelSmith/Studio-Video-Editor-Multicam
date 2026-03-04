@@ -118,6 +118,8 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - Deployment runbook: `docs/deployment.md`
 - Ops runbook: `docs/ops.md`
 - Security notes: `docs/security.md`
+- QA gate: `docs/qa-checklist.md`
+- Performance baseline: `docs/performance-baseline.md`
 
 ## Employment Readiness
 This repository includes baseline standards to support hiring and delegation:
@@ -129,7 +131,15 @@ This repository includes baseline standards to support hiring and delegation:
 ## Validation Notes (2026-03-03)
 - `npm install` ✅
 - `npm test` ✅ (smoke)
+- `npm run test:unit` ✅
+- `npm run test:e2e` ✅
 - `npm run build` ✅
 - Build warning observed: `caniuse-lite` outdated (optional maintenance command):
   - `npx update-browserslist-db@latest`
+
+## Final Employment-Ready Snapshot
+- Practical feature set with clear UX states (validation, progress, cancel, presets)
+- Verified local build + smoke + unit + e2e flow
+- Deployment/Ops/Security docs included for handoff quality
+- Screenshots included; demo GIF workflow documented (add final GIF after your audio conversion step)
 
