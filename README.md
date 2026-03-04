@@ -143,3 +143,14 @@ This repository includes baseline standards to support hiring and delegation:
 - Deployment/Ops/Security docs included for handoff quality
 - Screenshots included; demo GIF workflow documented (add final GIF after your audio conversion step)
 
+## Known Limitations
+- Browser-side processing can be slow on low-spec machines
+- Long-form/high-resolution exports may require stronger hardware
+- Not a full replacement for heavyweight desktop NLE tools
+
+## Roadmap
+1. Add project-save/reload session files
+2. Add batch export profiles and queueing
+3. Add memory usage guardrails and adaptive processing hints
+4. Add cloud-assisted render option for heavy workloads
+
