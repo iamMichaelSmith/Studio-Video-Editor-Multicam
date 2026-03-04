@@ -79,6 +79,24 @@ The application will be available at http://localhost:5173
 ### Settings variants example
 ![Settings variants](docs/screenshots/ui-settings-variants.jpg)
 
+## Demo GIF Workflow (for GitHub)
+1. Start app: `npm run dev`
+2. Record a short interaction (upload area + settings + process click) using:
+   - Windows Snipping Tool video, ScreenToGif, or OBS
+3. Export as GIF (6-12 seconds recommended)
+4. Save to `docs/screenshots/demo-workflow.gif`
+5. Embed in README:
+```md
+![Demo workflow](docs/screenshots/demo-workflow.gif)
+```
+
+## Architecture & Performance Notes
+
+- Processing is browser-side using media/canvas APIs plus FFmpeg-web tooling.
+- UI now surfaces processing stage telemetry (analyzing/syncing/rendering/finalizing).
+- Validation is enforced before processing (format/count/size) to reduce runtime failures.
+- Quick presets (Reels/Shorts/TikTok) speed up repeatable output configuration.
+
 ## Technology Stack
 
 - React
@@ -97,6 +115,9 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## Team Operations
 - Use `docs/DEPLOY_CHECKLIST.md` before release.
 - Use `docs/HANDOFF_CHECKLIST.md` for onboarding.
+- Deployment runbook: `docs/deployment.md`
+- Ops runbook: `docs/ops.md`
+- Security notes: `docs/security.md`
 
 ## Employment Readiness
 This repository includes baseline standards to support hiring and delegation:
